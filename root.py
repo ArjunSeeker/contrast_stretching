@@ -1,10 +1,18 @@
 import cv2
+import os
 import numpy as np
+from statistics import mean, pstdev
 from numpy.lib.function_base import average
 from make_histogram import *
 from modify import *
 from local_maxima import *
 from histogram_equalize import *
+
+def getRcv(original_hist, modified_hist):
+    cv0 = pstdev(original_hist)/mean(original_hist)
+    cv1 = pstdev(modified_hist)/mean(modified_hist)
+    return cv1/cv0
+
 def main(image):
     maxval = image.max()
     minval = image.min()
@@ -24,7 +32,7 @@ def main(image):
     imhist_not0 = histogram[idx_imhist_not0]
     local_maximums = find_local_maximum(imhist_not0, 10)
     t_up = average(local_maximums)
-    print('tup',t_up)
+    # print('tup',t_up)
     dim_im = np.shape(im)
     print('shape',dim_im)
     
@@ -34,16 +42,39 @@ def main(image):
     Sta = min(n_total, t_up * L)
     M = N
     t_down = d_min * Sta / M
-    print("T_Down", t_down)
+    # print("T_Down", t_down)
     
     if t_down>t_up:
         t_up, t_down = t_down, t_up
         print("the values have been swapped")
     imhist_modified = modify_histogram(histogram, t_down, t_up)
+
+    Rcv_0 = getRcv(histogram, imhist_modified)
+    if Rcv_0 < 0.5:
+        Rcv_exp = 0.5*0.6 + Rcv_0*0.4
+        T_up1 = max(histogram)
+        while abs(t_up-T_up1)>1:
+            T_up = 0.5*(t_up + T_up1)
+            T_down = Sta/M
+            imhist_modified = modify_histogram(histogram, T_down, T_up)
+            Rcv = getRcv(histogram, imhist_modified)
+            if Rcv<Rcv_exp:
+                t_up = T_up
+            else:
+                T_up1 = T_up
+
+    else:
+        T_up = t_up
+        T_down = t_down
+
+    mean_h = mean(histogram)
+    if T_down > 0.2 * mean_h:
+        T_down = 0.2 * mean_h
+        imhist_modified = modify_histogram(histogram, T_down, T_up)
     res = histogram_equalization(im, interval2, imhist_modified, 0, 255)
-    cv2.imwrite("stretched_image3.jpg", res)
+    cv2.imwrite("stretched_image.jpg", res)
 
 if __name__ == "__main__":
-    image = cv2.cvtColor(cv2.imread("input_images/people.png"), cv2.COLOR_BGR2GRAY)
+    image = cv2.cvtColor(cv2.imread('input_images/people.png'),cv2.COLOR_BGR2GRAY)
     image = np.array(image)
     main(image)
