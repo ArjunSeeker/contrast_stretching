@@ -44,6 +44,6 @@ def main(image):
     cv2.imwrite("stretched_image3.jpg", res)
 
 if __name__ == "__main__":
-    image = cv2.cvtColor(cv2.imread("input_images/03.tif"), cv2.COLOR_BGR2GRAY)
+    image = cv2.cvtColor(cv2.imread("input_images/people.png"), cv2.COLOR_BGR2GRAY)
     image = np.array(image)
     main(image)
