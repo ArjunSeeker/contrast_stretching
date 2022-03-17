@@ -18,7 +18,7 @@ def main(image):
     minval = image.min()
     print('max pixel', maxval)
     print('min pixel', minval)
-    N = 100
+    N = 500
     step = (maxval-minval)/(N+1)
     print('interval',step)
     interval = list(np.arange(minval,maxval,step))
@@ -32,7 +32,7 @@ def main(image):
     imhist_not0 = histogram[idx_imhist_not0]
     local_maximums = find_local_maximum(imhist_not0, 10)
     t_up = average(local_maximums)
-    # print('tup',t_up)
+    print('tup',t_up)
     dim_im = np.shape(im)
     print('shape',dim_im)
     
@@ -42,7 +42,7 @@ def main(image):
     Sta = min(n_total, t_up * L)
     M = N
     t_down = d_min * Sta / M
-    # print("T_Down", t_down)
+    print("T_Down", t_down)
     
     if t_down>t_up:
         t_up, t_down = t_down, t_up
@@ -71,10 +71,13 @@ def main(image):
     if T_down > 0.2 * mean_h:
         T_down = 0.2 * mean_h
         imhist_modified = modify_histogram(histogram, T_down, T_up)
+    print('modified parameters:')
+    print("T_up %d" %T_up)
+    print("T_down %d" %T_down)
     res = histogram_equalization(im, interval2, imhist_modified, 0, 255)
     cv2.imwrite("stretched_image.jpg", res)
 
 if __name__ == "__main__":
-    image = cv2.cvtColor(cv2.imread('input_images/people.png'),cv2.COLOR_BGR2GRAY)
+    image = cv2.cvtColor(cv2.imread('input_images/0002.bmp'),cv2.COLOR_BGR2GRAY)
     image = np.array(image)
     main(image)
